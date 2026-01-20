@@ -1,24 +1,37 @@
 export default function handler(req, res) {
-  const slug = (req.query.slug || []).join("/");
-  const [brand, id] = slug.split("/");
+  const parts = req.query.slug || [];
+  const brand = parts[0]; 
 
-  if (!brand || !id) {
-    return res.status(404).send("Not found");
+  if (!brand) {
+    return res.status(404).send("Brand not provided");
   }
 
-  if (brand === "mercedes") {
-    return res.redirect(
-      302,
-      `https://www.mercedes-benz-mena.com/dubai/en/stock/${id}`
-    );
+  const BRAND_URLS = {
+    bmw: "https://www.bmw-abudhabi.com/",
+    mercedes: "https://www.mercedes-benz-mena.com/dubai/",
+    altayer: "https://www.altayermotors.com/",
+    mg: "https://www.mg-uae.com/",
+    audi: "https://www.audi-dubai.com/",
+    jaguar: "https://www.jaguar-uae.com/",
+    porsche: "https://finder.porsche.com/",
+    polestar: "https://www.polestarimporteruae.com/",
+    tesla: "https://www.tesla.com/",
+    lexus: "https://www.lexus.ae/",
+    volvo: "https://www.volvocarsuae.ae/",
+    byd: "https://www.byduae.ae/",
+    smart: "https://uae.smart.com/",
+    jetour: "https://www.jetouruae.com/",
+    zeekr: "https://www.zeekrlife.com/",
+    genesis: "https://www.genesis.com/",
+    findbmw: "https://www.findyourbmw.ae/",
+    findmini: "https://findyourmini.ae/",
+  };
+
+  const redirectUrl = BRAND_URLS[brand.toLowerCase()];
+
+  if (!redirectUrl) {
+    return res.status(404).send("Unknown brand");
   }
 
-  if (brand === "bmw") {
-    return res.redirect(
-      302,
-      `https://www.bmw-abudhabi.com/en/stock/${id}`
-    );
-  }
-
-  return res.status(404).send("Unknown brand");
-}
+  return res.redirect(302, redirectUrl);
+} 
