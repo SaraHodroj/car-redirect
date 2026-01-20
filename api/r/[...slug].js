@@ -1,10 +1,7 @@
 export default function handler(req, res) {
-  const parts = req.query.slug || [];
-  const brand = parts[0]; 
-
-  if (!brand) {
-    return res.status(404).send("Brand not provided");
-  }
+  // Get the path after /api/r/
+  const pathname = new URL(req.url, `http://${req.headers.host}`).pathname;
+  const brand = pathname.split("/").pop().toLowerCase();
 
   const BRAND_URLS = {
     bmw: "https://www.bmw-abudhabi.com/",
@@ -24,14 +21,14 @@ export default function handler(req, res) {
     zeekr: "https://www.zeekrlife.com/",
     genesis: "https://www.genesis.com/",
     findbmw: "https://www.findyourbmw.ae/",
-    findmini: "https://findyourmini.ae/",
+    findmini: "https://findyourmini.ae/"
   };
 
-  const redirectUrl = BRAND_URLS[brand.toLowerCase()];
+  const url = BRAND_URLS[brand];
 
-  if (!redirectUrl) {
-    return res.status(404).send("Unknown brand");
+  if (!url) {
+    return res.status(404).send(`Unknown brand: ${brand}`);
   }
 
-  return res.redirect(302, redirectUrl);
-} 
+  return res.redirect(302, url);
+}
