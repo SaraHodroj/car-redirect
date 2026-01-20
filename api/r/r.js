@@ -1,13 +1,18 @@
 export default function handler(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
-  // Everything after /api/r/
-  const parts = url.pathname.replace("/api/r/", "").split("/");
+  const path = url.pathname.replace("/api/r/", "");
+  const parts = path.split("/");
 
-  const brand = parts.shift()?.toLowerCase();
+  const brand = parts.shift()?.toLowerCase(); 
   const restPath = parts.join("/");
+  const query = url.search; 
 
-  const BRAND_URLS = {
+  if (!brand) {
+    return res.status(400).send("Brand not provided");
+  }
+
+  const BRAND_BASE_URLS = {
     bmw: "https://www.bmw-abudhabi.com/",
     mercedes: "https://www.mercedes-benz-mena.com/dubai/",
     altayer: "https://www.altayermotors.com/",
@@ -28,16 +33,13 @@ export default function handler(req, res) {
     findmini: "https://findyourmini.ae/"
   };
 
-  const baseUrl = BRAND_URLS[brand];
+  const baseUrl = BRAND_BASE_URLS[brand];
 
   if (!baseUrl) {
-    return res.status(404).send("Unknown brand");
+    return res.status(404).send(`Unknown brand: ${brand}`);
   }
 
-  const finalUrl =
-    baseUrl +
-    restPath +
-    (url.search ? url.search : "");
+  const finalUrl = baseUrl + restPath + query;
 
   return res.redirect(302, finalUrl);
 }
