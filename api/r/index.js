@@ -1,14 +1,16 @@
 export default function handler(req, res) {
-  const path = req.query.path;
+  const url = new URL(req.url, `https://${req.headers.host}`);
 
-  if (!path || path.length === 0) {
+  const path = url.pathname.replace(/^\/api\/r\/?/, "");
+  const parts = path.split("/").filter(Boolean);
+
+  if (parts.length === 0) {
     return res.status(400).send("Brand not provided");
   }
 
-  const parts = Array.isArray(path) ? path : [path];
   const brand = parts.shift().toLowerCase();
   const restPath = parts.join("/");
-  const query = req.url.includes("?") ? "?" + req.url.split("?")[1] : "";
+  const query = url.search || "";
 
   const BRAND_BASE_URLS = {
     bmw: "https://www.bmw-abudhabi.com",
@@ -36,10 +38,6 @@ export default function handler(req, res) {
     return res.status(404).send(`Unknown brand: ${brand}`);
   }
 
-  const finalUrl =
-    base +
-    (restPath ? "/" + restPath : "") +
-    query;
-
+  const finalUrl = base + (restPath ? "/" + restPath : "") + query;
   return res.redirect(302, finalUrl);
 }
