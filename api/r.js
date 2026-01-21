@@ -4,9 +4,9 @@ export default function handler(req, res) {
   const path = url.pathname.replace("/api/r/", "");
   const parts = path.split("/");
 
-  const brand = parts.shift()?.toLowerCase(); 
+  const brand = parts.shift()?.toLowerCase();
   const restPath = parts.join("/");
-  const query = url.search; 
+  const query = url.search;
 
   if (!brand) {
     return res.status(400).send("Brand not provided");
@@ -34,12 +34,20 @@ export default function handler(req, res) {
   };
 
   const baseUrl = BRAND_BASE_URLS[brand];
-
   if (!baseUrl) {
     return res.status(404).send(`Unknown brand: ${brand}`);
   }
 
-  const finalUrl = baseUrl + restPath + query;
+  let normalizedRestPath = restPath;
 
+  if (brand === "mercedes" && normalizedRestPath.startsWith("stock/")) {
+    normalizedRestPath = "en/" + normalizedRestPath;
+  }
+
+  if (brand === "bmw" && normalizedRestPath.startsWith("stock/")) {
+    normalizedRestPath = "en/" + normalizedRestPath;
+  }
+
+  const finalUrl = baseUrl + normalizedRestPath + query;
   return res.redirect(302, finalUrl);
 }
