@@ -1,12 +1,13 @@
 export default function handler(req, res) {
-  const { path = [] } = req.query; // array of path parts
+  const path = req.query.path;
 
-  if (!path.length) {
+  if (!path || path.length === 0) {
     return res.status(400).send("Brand not provided");
   }
 
-  const brand = path.shift().toLowerCase();
-  const restPath = path.join("/");
+  const parts = Array.isArray(path) ? path : [path];
+  const brand = parts.shift().toLowerCase();
+  const restPath = parts.join("/");
   const query = req.url.includes("?") ? "?" + req.url.split("?")[1] : "";
 
   const BRAND_BASE_URLS = {
