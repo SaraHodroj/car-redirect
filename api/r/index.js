@@ -1,22 +1,17 @@
 export default function handler(req, res) {
   const url = new URL(req.url, `https://${req.headers.host}`);
 
-  // 1) Prefer rewrite-provided path: ?path=bmw/owners/...
+  // ✅ supports vercel rewrite: /api/r?path=bmw/owners/...
+  // ✅ supports no rewrite: /api/r/bmw/owners/...
   let rawPath = req.query?.path;
 
-  // If path comes as array, join it
   if (Array.isArray(rawPath)) rawPath = rawPath.join("/");
-
-  // 2) Fallback: parse from URL pathname (if no rewrite)
   if (typeof rawPath !== "string" || rawPath.length === 0) {
     rawPath = url.pathname.replace(/^\/api\/r\/?/, "");
   }
 
   const parts = rawPath.split("/").filter(Boolean);
-
-  if (parts.length === 0) {
-    return res.status(400).send("Brand not provided");
-  }
+  if (parts.length === 0) return res.status(400).send("Brand not provided");
 
   const brand = parts.shift().toLowerCase();
   const restPath = parts.join("/");
@@ -43,18 +38,8 @@ export default function handler(req, res) {
   };
 
   const base = BRAND_BASE_URLS[brand];
-  if (!base) {
-    return res.status(404).send(`Unknown brand: ${brand}`);
-  }
+  if (!base) return res.status(404).send(`Unknown brand: ${brand}`);
 
-  // IMPORTANT: use the original query string ONLY (not the rewrite's ?path=...)
-  const originalQuery = url.searchParams.has("path")
-    ? "?" + [...url.searchParams.entries()]
-        .filter(([k]) => k !== "path")
-        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-        .join("&")
-    : (url.search || "");
-
-  const finalUrl = base + (restPath ? "/" + restPath : "") + originalQuery;
+  const finalUrl = base + (restPath ? `/${restPath}` : "") + url.search;
   return res.redirect(302, finalUrl);
 }
